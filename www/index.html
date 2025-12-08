@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Johnny Secure Server v1.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden; /* wszystko na jednym ekranie */
+            font-family: "Poppins", sans-serif;
+            background: #020617;
+            color: #e5e7eb;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* =========================== */
+        /* EKRAN STARTOWY              */
+        /* =========================== */
+
+        .hero {
+            position: absolute;
+            inset: 0;
+            background: url('img/tlo.png') center/cover no-repeat;
+        }
+
+        .hero-content {
+            position: absolute;
+            right: 50px;
+            bottom: 80px;
+            width: 380px;
+            text-align: right;
+            animation: fadeIn 2s ease forwards;
+            text-shadow: 0 0 16px rgba(0,0,0,0.65);
+        }
+
+        .hero h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .btns {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 26px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.25s;
+        }
+
+        .btn.blue { background: #3b82f6; color: white; }
+        .btn.blue:hover { background: #60a5fa; transform: scale(1.06); }
+
+        .btn.white { background: white; color: #0f172a; }
+        .btn.white:hover { background: #e2e8f0; transform: scale(1.06); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================== */
+        /* PANEL PO WEJŚCIU           */
+        /* =========================== */
+
+        #panel {
+            position: absolute;
+            inset: 0;
+            display: none;                  /* ukryty dopóki hash != #panel */
+            justify-content: flex-end;
+            align-items: center;
+            padding-right: 70px;
+
+            background: url('img/matrix-tlo.jpg') center/cover no-repeat;
+
+            opacity: 0;
+            transform: translateX(80px);
+            transition: opacity 0.9s ease, transform 0.9s ease;
+        }
+
+        #panel.visible {
+            display: flex;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .panel-content {
+            width: 420px;
+            text-align: right;
+            text-shadow: 0 0 16px rgba(0,0,0,0.6);
+        }
+
+        .panel-content h2 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(0,255,0,0.4);
+        }
+
+        .panel-content p {
+            margin-bottom: 25px;
+        }
+
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .feature-box {
+            background: rgba(15,23,42,0.9);
+            padding: 16px 18px;
+            border-radius: 10px;
+            box-shadow: 0 0 16px rgba(0,255,0,0.18);
+            backdrop-filter: blur(4px);
+
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s ease forwards;
+        }
+
+        .feature-box:nth-child(1) { animation-delay: 0.3s; }
+        .feature-box:nth-child(2) { animation-delay: 0.5s; }
+        .feature-box:nth-child(3) { animation-delay: 0.7s; }
+        .feature-box:nth-child(4) { animation-delay: 0.9s; }
+
+        .feature-box h3 {
+            margin: 0 0 6px 0;
+            font-size: 1.05rem;
+        }
+
+        .feature-box p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================== */
+        /* MODAL – okno opisowe        */
+        /* =========================== */
+
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal-bg.visible {
+            display: flex;
+        }
+
+        .modal {
+            position: relative;
+            /* matrixowe tło + przyciemnienie */
+            background:
+                radial-gradient(circle at top, rgba(0,0,0,0.6) 0%, #020617 55%, #000 100%),
+                url('img/matrix-tlo.jpg') center/cover no-repeat;
+            padding: 30px;
+            width: 90%;
+            max-width: 520px;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0,255,0,0.35);
+            animation: modalShow 0.4s ease;
+            text-align: center;
+        }
+
+        @keyframes modalShow {
+            from { opacity: 0; transform: translateY(25px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* neonowe litery MATRIX */
+        .modal h3,
+        .modal p {
+            color: #e5e7eb;
+            text-shadow:
+                0 0 4px #22c55e,
+                0 0 8px #22c55e,
+                0 0 16px #22c55e,
+                0 0 24px rgba(34,197,94,0.9);
+            animation: glow 1.8s ease-in-out infinite alternate;
+        }
+
+        .modal h3 {
+            margin-bottom: 12px;
+            font-size: 1.6rem;
+        }
+
+        .modal p {
+            font-size: 1.05rem;
+            line-height: 1.45;
+            opacity: 0.96;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow:
+                    0 0 3px #16a34a,
+                    0 0 6px #16a34a,
+                    0 0 10px rgba(34,197,94,0.8);
+            }
+            to {
+                text-shadow:
+                    0 0 6px #22c55e,
+                    0 0 14px #22c55e,
+                    0 0 26px rgba(34,197,94,1);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            font-size: 1.7rem;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        .modal-close:hover {
+            color: #ffffff;
+        }
+
+        /* pomocnicze */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =========================== -->
+<!-- EKRAN STARTOWY              -->
+<!-- =========================== -->
+
+<section class="hero" id="hero">
+    <div class="hero-content">
+        <h1>Johnny Secure Server</h1>
+        <p>Profesjonalna konfiguracja, bezpieczeństwo i opieka nad Twoim serwerem VPS.</p>
+
+        <div class="btns">
+            <a href="#panel" id="enterBtn" class="btn blue">WEJDŹ</a>
+            <a href="mailto:johnnyserwer@gmail.com" class="btn white">KONTAKT</a>
+        </div>
+    </div>
+</section>
+
+<!-- =========================== -->
+<!-- PANEL PO WEJŚCIU           -->
+<!-- =========================== -->
+
+<section id="panel">
+    <div class="panel-content">
+        <h2>Co robię na Twoim serwerze?</h2>
+        <p>Kompleksowa konfiguracja, zabezpieczenia, backup oraz monitoring serwera 24/7.</p>
+
+        <div class="features">
+            <div class="feature-box" data-info="ssh">
+                <h3>🔒 SSH &amp; logowanie</h3>
+                <p>Zabezpieczenie SSH, klucze, blokada brute-force, analiza logów.</p>
+            </div>
+
+            <div class="feature-box" data-info="firewall">
+                <h3>🛡️ Firewall &amp; HTTPS</h3>
+                <p>UFW (22/80/443), certyfikat Let's Encrypt, wymuszony HTTPS.</p>
+            </div>
+
+            <div class="feature-box" data-info="attacks">
+                <h3>🚨 Ochrona przed atakami</h3>
+                <p>Fail2Ban / CrowdSec, wykrywanie botnetów, blokowanie złośliwych IP.</p>
+            </div>
+
+            <div class="feature-box" data-info="backup">
+                <h3>🧾 Backup &amp; skrypty</h3>
+                <p>Backup WWW + Apache, panel JSS, raport bezpieczeństwa.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =========================== -->
+<!-- MODAL                       -->
+<!-- =========================== -->
+
+<div class="modal-bg" id="modalBg">
+    <div class="modal">
+        <div class="modal-close" id="modalClose">✖</div>
+        <h3 id="modalTitle"></h3>
+        <p id="modalText"></p>
+    </div>
+</div>
+
+<script>
+/*
+    HASH ROUTING:
+    "" lub "#"           -> ekran startowy (hero)
+    "#panel"             -> panel z boxami
+    "#panel-ssh" itd.    -> panel + modal konkretnej usługi
+*/
+
+const hero = document.getElementById("hero");
+const panel = document.getElementById("panel");
+const modalBg = document.getElementById("modalBg");
+const modalClose = document.getElementById("modalClose");
+const modalTitle = document.getElementById("modalTitle");
+const modalText = document.getElementById("modalText");
+
+/* opisy do modala */
+const descriptions = {
+    ssh: {
+        title: "SSH & logowanie",
+        text: "Konfiguruję bezpieczne SSH, wprowadzam klucze ED25519, blokuję ataki brute-force, ukrywam banery identyfikacyjne oraz analizuję logi serwera."
+    },
+    firewall: {
+        title: "Firewall & HTTPS",
+        text: "Konfiguruję firewall UFW, otwieram tylko niezbędne porty (22/80/443), instaluję certyfikat Let's Encrypt oraz wymuszam bezpieczne HTTPS."
+    },
+    attacks: {
+        title: "Ochrona przed atakami",
+        text: "Wdrażam Fail2Ban lub CrowdSec, blokuję botnety, analizuję próby włamań i przygotowuję reguły obronne dopasowane do Twojego serwera."
+    },
+    backup: {
+        title: "Backup & skrypty",
+        text: "Tworzę automatyczne backupy WWW + Apache, odzyskiwanie w 1 kliknięcie, panel JSS oraz pełen raport bezpieczeństwa."
+    }
+};
+
+/* ustawienie widoku na podstawie hash */
+function applyStateFromHash() {
+    const h = window.location.hash;
+
+    // domyślnie: chowamy modal
+    modalBg.classList.remove("visible");
+
+    if (!h || h === "#" ) {
+        // ekran startowy
+        hero.classList.remove("hidden");
+        panel.classList.remove("visible");
+        panel.style.display = "none";
+        return;
+    }
+
+    if (h.startsWith("#panel")) {
+        // włączamy panel
+        hero.classList.add("hidden");
+        panel.style.display = "flex";
+        // mała pauza żeby CSS transition zadziałał
+        requestAnimationFrame(() => panel.classList.add("visible"));
+
+        // czy mamy konkretną sekcję?
+        if (h === "#panel") {
+            return; // tylko panel, bez modala
+        }
+
+        // #panel-ssh, #panel-firewall, #panel-attacks, #panel-backup
+        const key = h.replace("#panel-", "");
+        if (descriptions[key]) {
+            modalTitle.innerText = descriptions[key].title;
+            modalText.innerText = descriptions[key].text;
+            modalBg.classList.add("visible");
+        }
+    }
+}
+
+/* kliknięcie boxów – ustawiamy hash, resztą zajmuje się applyStateFromHash */
+document.querySelectorAll(".feature-box").forEach(box => {
+    box.addEventListener("click", () => {
+        const key = box.dataset.info;
+        window.location.hash = "#panel-" + key;
+    });
+});
+
+/* zamknięcie modala – wracamy do samego panelu */
+modalClose.addEventListener("click", () => {
+    window.location.hash = "#panel";
+});
+
+modalBg.addEventListener("click", (e) => {
+    if (e.target === modalBg) {
+        window.location.hash = "#panel";
+    }
+});
+
+/* reagujemy na zmianę hash (strzałka wstecz / dalej, ręczne wpisanie) */
+window.addEventListener("hashchange", applyStateFromHash);
+
+/* ustawiamy stan przy pierwszym wejściu na stronę */
+window.addEventListener("load", applyStateFromHash);
+</script>
+
+</body>
+</html>
